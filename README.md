@@ -1,7 +1,103 @@
 # events_infrastructure
 En este repositorio se almacena todo lo relacionado a diagramas e infraestructura del proyecto Nebula Eventual
 
+```mermaid
+graph LR
+    %% Configuración de Estilo Oscuro General
+    %% Si usas un visor en modo oscuro, esto se adaptará automáticamente.
+    
+    subgraph CI_CD [CI/CD PIPELINE - Docker Host restart: always / auto-recovery]
+        github[GitHub <br> Push / PR] --> github_ci[GitHub Actions CI <br> Build - Test - Lint]
+        github_ci --> github_cd[GitHub Actions CD <br> Build Image - Deploy]
+        github_cd --> docker_host[Docker Host]
+    end
 
+    %% --- COLUMNA 1: FRONTENDS ---
+    subgraph FRONTENDS [FRONTENDS - React 18 - PWA]
+        direction TB
+        f_nebula["<b>nebula.</b><br>Usuarios · OAuth Google<br>Favoritos · PQRS · QR"]
+        f_admin["<b>admin.</b><br>Eventos · Empleados<br>PQRS · Métricas"]
+        f_tickets["<b>tickets.</b><br>Venta presencial<br>Impresión física"]
+        f_access["<b>access.</b><br>Escaneo QR · Asiento<br>Antifraude · Duplicados"]
+    end
+
+    %% --- COLUMNA 2: BACKENDS ---
+    subgraph BACKENDS [BACKENDS - Docker restart: always]
+        direction TB
+        b_auth["<b>Auth Service</b><br>Laravel 11 · Passport · Socialite<br>Login · OAuth Google · JWT · Roles<br>Permisos por portal · Empleados"]
+        b_eventos["<b>Eventos Service</b><br>ASP.NET Core 8<br>Eventos · Asientos · Boletas<br>Compras · PQRS · Métricas"]
+        b_validacion["<b>Validación</b><br>ASP.NET Core 8<br>Escaneo QR<br>Antifraude"]
+    end
+
+    %% --- COLUMNA 3: SERVICIOS DE SOPORTE ---
+    subgraph SOPORTE [SERVICIOS DE SOPORTE]
+        direction TB
+        s_google["<b>Google OAuth</b><br>Login social<br>Laravel Socialite"]
+        s_stripe["<b>Stripe</b><br>Pagos online<br>Modo test"]
+        s_aws["<b>AWS S3</b><br>Imágenes eventos<br>Fotos de perfil"]
+        s_n8n["<b>n8n</b><br>Correos · Notificaciones<br>Favoritos · PQRS · QR"]
+    end
+
+    %% --- COLUMNA 4: BASES DE DATOS Y LOGS ---
+    subgraph PERSISTENCIA [BASES DE DATOS Y LOGS]
+        direction TB
+        db_auth[("<b>BD Auth</b><br>MySQL 8<br>Usuarios · Roles<br>Tokens · Permisos portal")]
+        db_negocio[("<b>BD Negocio</b><br>MySQL 8<br>Eventos · Asientos · Boletas<br>Compras · Favoritos · PQRS")]
+        db_logs[("<b>MongoDB Atlas</b><br>Logs del sistema<br>logs_auth · logs_eventos<br>logs_validacion")]
+    end
+
+    %% --- RELACIONES Y FLUJOS HTTP (Frontends -> Backends) ---
+    f_nebula -->|Petición HTTP| b_auth
+    f_nebula -->|Petición HTTP| b_eventos
+    
+    f_admin -->|Petición HTTP| b_auth
+    f_admin -->|Petición HTTP| b_eventos
+    
+    f_tickets -->|Petición HTTP| b_eventos
+    
+    f_access -->|Petición HTTP| b_validacion
+
+    %% --- COMUNICACIÓN ENTRE BACKENDS (Validación JWT) ---
+    b_auth -.->|Validación JWT entre servicios<br>JWT misma clave secreta / permisos por portal| b_eventos
+    b_auth -.->|Validación JWT entre servicios| b_validacion
+
+    %% --- CONEXIONES DE SOPORTE ---
+    s_google ==> b_auth
+    b_eventos --> s_stripe
+    b_eventos --> s_aws
+    b_eventos -.->|Evento asíncrono| s_n8n
+
+    %% --- CONEXIONES A BASES DE DATOS (Lectura/Escritura) ---
+    b_auth ==> db_auth
+    b_eventos ==> db_negocio
+    b_validacion ==> db_negocio
+    s_n8n ==> db_negocio
+
+    %% --- ESCRITURA DE LOGS (Líneas punteadas hacia MongoDB) ---
+    b_auth -.->|Escritura de logs| db_logs
+    b_eventos -.->|Escritura de logs| db_logs
+    b_validacion -.->|Escritura de logs| db_logs
+
+    %% Estilos de los nodos para identificar tecnologías visualmente
+    style FRONTENDS fill:#111,stroke:#333,stroke-width:2px
+    style BACKENDS fill:#111,stroke:#333,stroke-width:2px
+    style SOPORTE fill:#111,stroke:#333,stroke-width:2px
+    style PERSISTENCIA fill:#111,stroke:#333,stroke-width:2px
+    
+    style f_nebula fill:#1f4e79,stroke:#fff,color:#fff
+    style f_admin fill:#1f4e79,stroke:#fff,color:#fff
+    style f_tickets fill:#1f4e79,stroke:#fff,color:#fff
+    style f_access fill:#1f4e79,stroke:#fff,color:#fff
+    
+    style b_auth fill:#5c2d25,stroke:#fff,color:#fff
+    style b_eventos fill:#164a3a,stroke:#fff,color:#fff
+    style b_validacion fill:#164a3a,stroke:#fff,color:#fff
+
+    style db_auth fill:#2e2b5c,stroke:#fff,color:#fff
+    style db_negocio fill:#2e2b5c,stroke:#fff,color:#fff
+    style db_logs fill:#1d4a1d,stroke:#fff,color:#fff
+
+```
 
 
 # Nebula-Eventual — Sistema de gestión y venta de boletas
