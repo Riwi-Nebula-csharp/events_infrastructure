@@ -1,7 +1,7 @@
 # events_infrastructure
 En este repositorio se almacena todo lo relacionado a diagramas e infraestructura del proyecto Nebula Eventual
 
-![Infraestructura del proyecto Eventos](images/infraestructura.png)
+
 
 
 # Nebula-Eventual — Sistema de gestión y venta de boletas
@@ -40,26 +40,7 @@ El sistema está compuesto por cuatro aplicaciones frontend independientes, tres
 
 El sistema sigue una arquitectura de **microservicios con múltiples frontends**. Cada frontend consume únicamente las APIs que corresponden a su dominio funcional. La autenticación es transversal: un único Auth Service emite tokens JWT que los demás servicios validan de forma independiente usando una clave secreta compartida.
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                        FRONTENDS (React)                         │
-│  nebula.   │   admin.   │   tickets.   │   access.               │
-└────┬───────┴─────┬──────┴──────┬───────┴──────┬──────────────────┘
-     │             │             │              │
-     ▼             ▼             ▼              ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                          BACKENDS                                │
-│  Auth Service (Laravel)  │  Eventos Service  │  Validación       │
-│                          │   (ASP.NET Core)  │  (ASP.NET Core)   │
-└──────────┬───────────────┴────────┬──────────┴──────┬────────────┘
-           │                        │                  │
-     ┌─────▼──────┐         ┌───────▼──────┐   ┌──────▼──────┐
-     │  BD Auth   │         │  BD Negocio  │   │  MongoDB    │
-     │  (MySQL)   │         │  (MySQL)     │   │  (logs)     │
-     └────────────┘         └──────────────┘   └─────────────┘
-```
-
----
+![Infraestructura del proyecto Eventos](images/infraestructura.png)
 
 ## Aplicaciones
 
